@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>__LABEL__</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__SCRIPT__</string>
+    </array>
+
+    <!-- Run once when the daemon loads (boot / install). -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Re-run on every network change: switching Wi-Fi/ethernet, joining a
+         new network, a VPN connecting or disconnecting. macOS rewrites these
+         files on each such transition. -->
+    <key>WatchPaths</key>
+    <array>
+        <string>/etc/resolv.conf</string>
+        <string>/var/run/resolv.conf</string>
+    </array>
+
+    <key>StandardOutPath</key>
+    <string>__LOG__</string>
+    <key>StandardErrorPath</key>
+    <string>__LOG__</string>
+</dict>
+</plist>

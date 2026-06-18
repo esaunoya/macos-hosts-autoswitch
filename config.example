@@ -1,0 +1,30 @@
+# hosts-autoswitch configuration
+#
+# Copy this file to `config`, then fill in the UPPERCASE values. Your real
+# `config` is git-ignored (see .gitignore) so it never lands in the repo.
+
+# Hostname to manage in /etc/hosts -- this is the short name you'll type to
+# reach the host (ssh, smb://, http://, etc.).
+MANAGED_HOST="myhost"
+
+# The host's IP on your home/trusted LAN. Used when you're home: a raw,
+# full-speed path with no VPN/overlay overhead.
+LAN_IP="192.168.1.10"
+
+# The host's stable remote-reachable IP, used when you're away from the LAN.
+# Typically a Tailscale 100.x address (also works with ZeroTier, a WireGuard
+# peer IP, a static WAN IP + port forward, etc.). Must be reachable from
+# wherever your device roams.
+REMOTE_IP="100.100.100.100"
+
+# Pinned SSH host-key fingerprint of the host. This is how "am I home?" is
+# decided: LAN_IP is trusted only if whatever answers there presents THIS key,
+# so a different machine at the same LAN IP on a foreign network can't fool it.
+# Capture it with:  ./capture-fingerprint.sh <host-or-ip>
+# (SSH host-key fingerprints are public information and safe to store.)
+HOST_KEY_FP="SHA256:AAAAExampleExampleExampleExampleExampleExam"
+
+# --- optional (sensible defaults shown) ------------------------------------
+HOST_KEY_TYPE="ed25519"   # host-key type to probe and pin (ed25519 recommended)
+SSH_PORT="22"             # the host's SSH port
+PROBE_TIMEOUT="3"         # seconds to wait for the LAN host-key probe

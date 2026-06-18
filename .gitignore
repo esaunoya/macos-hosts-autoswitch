@@ -1,0 +1,6 @@
+# Your real settings live here -- never commit them.
+config
+
+# Local backups / scratch.
+*.bak
+*.bak.*
