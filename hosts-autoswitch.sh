@@ -51,7 +51,11 @@ else
 fi
 
 # --- no-op if the entry is already correct ---------------------------------
-current="$(awk -v h="$MANAGED_HOST" '$2==h {print $1; exit}' "$HOSTS")"
+# Skip comment lines so a comment whose second token happens to equal the host
+# can't be mistaken for the managed entry (which would peg `current` to "#" and
+# force a rewrite on every trigger). Detection and removal skip comments the
+# same way, keeping them consistent.
+current="$(awk -v h="$MANAGED_HOST" '/^[[:space:]]*#/ {next} $2==h {print $1; exit}' "$HOSTS")"
 if [ "$current" = "$target" ]; then
     log "$MANAGED_HOST already -> $target ($where); no change"
     exit 0
@@ -63,7 +67,8 @@ fi
 # detection step above ($2 == h), so the two can never disagree. Using a
 # literal field comparison (not a regex) also means dots or other regex
 # metacharacters in the hostname -- e.g. an FQDN like "my.host" -- are treated
-# literally, and comment lines are left untouched.
+# literally. Comment lines (starting with #) are passed through untouched, even
+# if their second token equals the host, so user comments are never dropped.
 #
 # Note: this manages the line where the host is the *canonical* (first) name.
 # If you also list the host as a trailing alias on some other line, that line
@@ -73,7 +78,7 @@ fi
 # same-filesystem rename.
 dir="$(dirname "$HOSTS")"
 tmp="$(mktemp "$dir/.hosts.XXXXXX")" || { log "ERROR: mktemp failed"; exit 1; }
-awk -v h="$MANAGED_HOST" '$2 != h' "$HOSTS" > "$tmp"
+awk -v h="$MANAGED_HOST" '/^[[:space:]]*#/ {print; next} $2 != h' "$HOSTS" > "$tmp"
 printf '%s\t%s\n' "$target" "$MANAGED_HOST" >> "$tmp"
 
 # Validate before swapping in: the result must be non-empty AND still define
