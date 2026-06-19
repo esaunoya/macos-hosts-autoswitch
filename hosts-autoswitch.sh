@@ -77,8 +77,9 @@ awk -v h="$MANAGED_HOST" '$2 != h' "$HOSTS" > "$tmp"
 printf '%s\t%s\n' "$target" "$MANAGED_HOST" >> "$tmp"
 
 # Validate before swapping in: the result must be non-empty AND still define
-# localhost. If anything looks wrong, bail without touching the live file.
-if [ -s "$tmp" ] && grep -qE '127\.0\.0\.1[[:space:]]+localhost' "$tmp"; then
+# localhost (IPv4 127.0.0.1 or IPv6 ::1). If anything looks wrong, bail without
+# touching the live file.
+if [ -s "$tmp" ] && grep -qE '(127\.0\.0\.1|::1)[[:space:]]+localhost' "$tmp"; then
     chmod 644 "$tmp"
     chown root:wheel "$tmp" 2>/dev/null || true
     mv "$tmp" "$HOSTS"
