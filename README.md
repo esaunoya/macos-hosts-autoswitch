@@ -174,6 +174,10 @@ original `/etc/hosts` from the backup if you want it.
   Until then it fails safe to the remote IP.
 - **One host per install.** Managing several hosts means several configs and
   daemons; this is intentionally kept simple.
+- **Canonical name only.** The tool manages the `/etc/hosts` line where your
+  host is the *canonical* (first) name — i.e. `<ip>  MANAGED_HOST`. Don't also
+  list `MANAGED_HOST` as a trailing alias on some other line; such a line is
+  left untouched and would shadow the managed entry.
 - **Triggering:** it reacts to network changes via `WatchPaths` on
   `resolv.conf`. If you want a periodic safety net, add a `StartInterval` to the
   plist template — left out by default to avoid probing strange networks on a

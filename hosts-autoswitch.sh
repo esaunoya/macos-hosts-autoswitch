@@ -58,12 +58,22 @@ if [ "$current" = "$target" ]; then
 fi
 
 # --- rewrite the hosts file atomically -------------------------------------
-# Drop any existing line(s) for the managed host, append the desired one.
+# Drop any existing line whose canonical (first) name is the managed host,
+# then append the desired one. Removal matches the awk field exactly as the
+# detection step above ($2 == h), so the two can never disagree. Using a
+# literal field comparison (not a regex) also means dots or other regex
+# metacharacters in the hostname -- e.g. an FQDN like "my.host" -- are treated
+# literally, and comment lines are left untouched.
+#
+# Note: this manages the line where the host is the *canonical* (first) name.
+# If you also list the host as a trailing alias on some other line, that line
+# is left alone -- don't do that (see README).
+#
 # The temp file lives in the same directory so the final mv is an atomic
 # same-filesystem rename.
 dir="$(dirname "$HOSTS")"
 tmp="$(mktemp "$dir/.hosts.XXXXXX")" || { log "ERROR: mktemp failed"; exit 1; }
-grep -v -E "[[:space:]]${MANAGED_HOST}\$" "$HOSTS" > "$tmp"
+awk -v h="$MANAGED_HOST" '$2 != h' "$HOSTS" > "$tmp"
 printf '%s\t%s\n' "$target" "$MANAGED_HOST" >> "$tmp"
 
 # Validate before swapping in: the result must be non-empty AND still define
