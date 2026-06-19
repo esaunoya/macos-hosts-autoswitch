@@ -137,6 +137,33 @@ All settings live in `config` (git-ignored). See `config.example`.
 - **Full LAN throughput at home** (large media/backup transfers) without giving
   up remote reachability.
 
+## Why not split-horizon DNS?
+
+The conventional way to serve different IPs for one name by location is
+[split-horizon DNS](https://en.wikipedia.org/wiki/Split-horizon_DNS): run a
+resolver (e.g. [Pi-hole](https://pi-hole.net) + `dnsmasq`, or Tailscale's
+[Split DNS](https://tailscale.com/kb/1054/dns)) that hands LAN clients the LAN
+IP and remote clients the remote IP. `dnsmasq` can even return the address
+matching the querying interface's subnet (`localise-queries`).
+
+If you already run a resolver like Pi-hole, that may be the better fit — it
+applies network-wide, to every device at once, not just one Mac.
+
+`hosts-autoswitch` exists for the cases split-horizon DNS doesn't cover well:
+
+- **No infrastructure.** No DNS server to run, secure, and keep alive — it's a
+  ~60-line script and a LaunchDaemon on the one machine that needs it.
+- **Survives full-tunnel VPNs.** A VPN like Proton that captures DNS on the
+  client means your split-horizon resolver never sees the query, so the name
+  stops resolving. `/etc/hosts` is read *before* DNS, so this keeps working —
+  it's the exact scenario this tool was built for.
+- **Per-device, not network-wide.** Give one laptop this behavior without
+  touching anything else on the network.
+
+Rule of thumb: **split-horizon DNS** for one network-wide rule when you already
+run a resolver; **hosts-autoswitch** for a per-device, server-less setup that
+keeps working behind a full-tunnel VPN.
+
 ## Safety
 
 Editing `/etc/hosts` as root deserves care; this tool is deliberately
