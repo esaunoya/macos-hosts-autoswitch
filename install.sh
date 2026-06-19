@@ -40,14 +40,23 @@ sed -e "s|__LABEL__|${LABEL}|g" \
     "$HERE/hosts-autoswitch.plist.template" > "$PLIST_DST"
 chown root:wheel "$PLIST_DST"; chmod 644 "$PLIST_DST"
 
-# (Re)load the daemon, then run once now.
+# (Re)load the daemon, then run once now. Don't let a non-zero first run abort
+# the installer under 'set -e' -- the daemon is already loaded, and we want to
+# print status either way. Surface the result explicitly instead.
 launchctl bootout system "$PLIST_DST" 2>/dev/null || true
 launchctl bootstrap system "$PLIST_DST"
-"$SCRIPT_DST"
+if "$SCRIPT_DST"; then first_run="ok"; else first_run="FAILED (see log)"; fi
+
+# Read the managed hostname straight from the config (it's shell syntax) rather
+# than re-parsing it with grep/cut, which mishandled FQDNs and inline comments.
+MANAGED_HOST=""
+# shellcheck disable=SC1091
+. "$HERE/config"
 
 echo ""
-echo "Installed. Recent log ($LOG):"
+echo "Installed. First run: $first_run"
+echo "Recent log ($LOG):"
 tail -n 3 "$LOG" 2>/dev/null || true
 echo ""
 echo "Current entry:"
-grep -E "[[:space:]]$(grep -E '^MANAGED_HOST=' "$HERE/config" | cut -d= -f2 | tr -d '\"')\$" /etc/hosts || true
+awk -v h="$MANAGED_HOST" '$2 == h' /etc/hosts || true
